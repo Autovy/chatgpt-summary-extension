@@ -1,25 +1,22 @@
 import { render } from 'preact'
+import xss from 'xss'
 import '../base.css'
 import { getUserConfig, Language, Theme } from '../config'
-import { detectSystemColorScheme } from '../utils'
+import { defaultPrompt, detectSystemColorScheme } from '../utils'
 import ChatGPTContainer from './ChatGPTContainer'
+import { getSummaryPrompt } from './prompt'
 import { config, SearchEngine } from './search-engine-configs'
+import './styles.scss'
 import {
+  getBilibiliTranscript,
+  getBV,
+  getConverTranscript,
+  getLangOptionsWithLink,
+  getLangOptionsWithLinkBilibili,
   getPossibleElementByQuerySelector,
   getSearchParam,
-  getLangOptionsWithLink,
-  getTranscriptHTML,
-  getRawTranscript,
   waitForElm,
-  getConverTranscript,
-  getBV,
-  getLangOptionsWithLinkBilibili,
-  getBilibiliTranscript,
 } from './utils'
-import { getSummaryPrompt } from './prompt'
-import xss from 'xss'
-import { defaultPrompt } from '../utils'
-import './styles.scss'
 
 interface MountProps {
   question: string
@@ -81,14 +78,12 @@ async function mount(props: MountProps) {
     waitForElm('#secondary.style-scope.ytd-watch-flexy').then(() => {
       document.querySelector('#secondary.style-scope.ytd-watch-flexy')?.prepend(container)
     })
-  } else if (siteName === 'bilibili'){
+  } else if (siteName === 'bilibili') {
     container.classList.add('glarity--chatgpt--youtube')
     waitForElm('#danmukuBox').then(() => {
       document.querySelector('#danmukuBox')?.prepend(container)
     })
-
-  } 
-  else {
+  } else {
     const siderbarContainer = getPossibleElementByQuerySelector(siteConfig.sidebarContainerQuery)
 
     console.log(
@@ -205,7 +200,7 @@ Reply in ${userConfig.language === Language.Auto ? language : userConfig.languag
   }
 
   // bilibili
-  if(siteName === 'bilibili'){
+  if (siteName === 'bilibili') {
     const videoId = getBV(window.location.href)
     if (!videoId) {
       return
@@ -213,13 +208,12 @@ Reply in ${userConfig.language === Language.Auto ? language : userConfig.languag
 
     const langOptionsWithLink = await getLangOptionsWithLinkBilibili(videoId)
     console.log('langOptionsWithLink', langOptionsWithLink)
-    
+
     const transcriptList = await getBilibiliTranscript({ langOptionsWithLink, videoId, index: 0 })
 
     const videoTitle = document.title
     const videoUrl = window.location.href
-
-    const transcript = transcriptList[0]['text'] + transcriptList[transcriptList.length - 1]
+    const transcript = transcriptList[0]['text'] + transcriptList[transcriptList.length - 1]['text']
 
     const Instructions = userConfig.prompt ? `${userConfig.prompt}` : defaultPrompt
 
@@ -231,7 +225,6 @@ Reply in ${userConfig.language === Language.Auto ? language : userConfig.languag
       Instructions: ${Instructions}
 
       Reply in ${userConfig.language === Language.Auto ? language : userConfig.language} Language.`
-
 
     console.log('Bilibili queryText', queryText)
 
