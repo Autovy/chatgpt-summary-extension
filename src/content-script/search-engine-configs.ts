@@ -1,4 +1,4 @@
-import { getSearchParam, waitForElm } from './utils'
+import { getBV, getSearchParam, waitForElm } from './utils'
 export interface SearchEngine {
   inputQuery: string[]
   sidebarContainerQuery: string[]
@@ -101,6 +101,32 @@ export const config: Record<string, SearchEngine> = {
       }, 1000)
     },
   },
+
+  bilibili: {
+    inputQuery: ["input[name='q']"],
+    sidebarContainerQuery: ['#rhs'],
+    appendContainerQuery: ['#rcnt'],
+    extabarContainerQuery: ['#extabar'],
+    name: 'bilibili',
+    watchRouteChange(callback) {
+      let currentUrl = window.location.href
+
+      setInterval(() => {
+        const videoId = getBV(window.location.href)
+        if (window.location.href !== currentUrl && videoId) {
+          waitForElm('#danmukuBox').then(() => {
+            if (document.querySelector('div.glarity--container')) {
+              document.querySelector('div.glarity--container')?.remove()
+            }
+          })
+
+          callback()
+          currentUrl = window.location.href
+        }
+      }, 1000)
+    },
+  },
+
   yahooJpNews: {
     inputQuery: ["input[name='q']"],
     sidebarContainerQuery: ['#rhs'],

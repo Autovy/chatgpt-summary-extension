@@ -38,10 +38,11 @@ export enum Language {
   Russian = 'ru-RU',
 }
 
+// 默认值
 const userConfigWithDefaultValue = {
-  triggerMode: TriggerMode.Always,
+  triggerMode: TriggerMode.Manually,
   theme: Theme.Auto,
-  language: Language.Auto,
+  language: Language.Chinese,
   prompt: '',
 }
 

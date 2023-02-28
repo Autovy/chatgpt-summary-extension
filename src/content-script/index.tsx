@@ -12,6 +12,9 @@ import {
   getRawTranscript,
   waitForElm,
   getConverTranscript,
+  getBV,
+  getLangOptionsWithLinkBilibili,
+  getBilibiliTranscript,
 } from './utils'
 import { getSummaryPrompt } from './prompt'
 import xss from 'xss'
@@ -78,7 +81,14 @@ async function mount(props: MountProps) {
     waitForElm('#secondary.style-scope.ytd-watch-flexy').then(() => {
       document.querySelector('#secondary.style-scope.ytd-watch-flexy')?.prepend(container)
     })
-  } else {
+  } else if (siteName === 'bilibili'){
+    container.classList.add('glarity--chatgpt--youtube')
+    waitForElm('#danmukuBox').then(() => {
+      document.querySelector('#danmukuBox')?.prepend(container)
+    })
+
+  } 
+  else {
     const siderbarContainer = getPossibleElementByQuerySelector(siteConfig.sidebarContainerQuery)
 
     console.log(
@@ -191,6 +201,47 @@ Reply in ${userConfig.language === Language.Auto ? language : userConfig.languag
     console.log('Yahoo Japan News queryText', queryText)
 
     mount({ question: queryText, siteConfig, isRefresh })
+    return
+  }
+
+  // bilibili
+  if(siteName === 'bilibili'){
+    const videoId = getBV(window.location.href)
+    if (!videoId) {
+      return
+    }
+
+    const langOptionsWithLink = await getLangOptionsWithLinkBilibili(videoId)
+    console.log('langOptionsWithLink', langOptionsWithLink)
+    
+    const transcriptList = await getBilibiliTranscript({ langOptionsWithLink, videoId, index: 0 })
+
+    const videoTitle = document.title
+    const videoUrl = window.location.href
+
+    const transcript = transcriptList[0]['text'] + transcriptList[transcriptList.length - 1]
+
+    const Instructions = userConfig.prompt ? `${userConfig.prompt}` : defaultPrompt
+
+    const queryText = `
+      Title: ${videoTitle}
+      URL: ${videoUrl}
+      Transcript:${getSummaryPrompt(transcript)}
+
+      Instructions: ${Instructions}
+
+      Reply in ${userConfig.language === Language.Auto ? language : userConfig.language} Language.`
+
+
+    console.log('Bilibili queryText', queryText)
+
+    mount({
+      question: transcript.length > 0 ? queryText : '',
+      siteConfig,
+      transcript: transcriptList,
+      langOptionsWithLink,
+      isRefresh,
+    })
     return
   }
 

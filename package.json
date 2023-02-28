@@ -1,6 +1,6 @@
 {
-  "name": "chatgpt-google-summary-extension",
-  "author": "givebest",
+  "name": "chatgpt-summary-extension",
+  "author": "givebest, Autovy",
   "scripts": {
     "build": "node build.mjs",
     "lint": "eslint --ext .js,.mjs,.jsx .",
@@ -48,7 +48,6 @@
     "eslint-plugin-react": "^7.31.11",
     "eslint-plugin-react-hooks": "^4.6.0",
     "fs-extra": "^11.1.0",
-    "husky": "^8.0.0",
     "lint-staged": "^13.1.0",
     "postcss": "^8.4.20",
     "postcss-scss": "^4.0.6",

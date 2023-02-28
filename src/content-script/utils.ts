@@ -39,6 +39,24 @@ export function removeHtmlTags(str: string) {
   return str.replace(/<[^>]+>/g, '')
 }
 
+// 获取BV视频字幕链接
+export async function getLangOptionsWithLinkBilibili(videoId){
+  const videoMessageResponse = await fetch('https://api.bilibili.com/x/web-interface/view?aid=&bvid=' + videoId)
+  const videoRes = await videoMessageResponse.text()
+  const videoJSON = JSON.parse(videoRes)
+  const videoLangLink = videoJSON.data.subtitle.list
+
+  return videoLangLink.map(item => {
+    return {
+      language: item.lan,
+      link: item.subtitle_url.replace('http', 'https')
+    };
+  });
+
+
+}
+
+
 export async function getLangOptionsWithLink(videoId) {
   // Get a transcript URL
   const videoPageResponse = await fetch('https://www.youtube.com/watch?v=' + videoId)
@@ -54,6 +72,8 @@ export async function getLangOptionsWithLink(videoId) {
   const languageOptions = Array.from(captionTracks).map((i) => {
     return i.name.simpleText
   })
+
+  console.log(languageOptions)
 
   const first = 'English' // Sort by English first
   languageOptions.sort(function (x, y) {
@@ -219,6 +239,18 @@ export function getSearchParam(str) {
   return urlParams
 }
 
+// 获取b站bv号
+export function getBV(str){
+  const regex = /\/video\/(BV[^/?]+)/
+  const match = str.match(regex)
+  if(match){
+    const videoId = match[1]
+    console.log(videoId)
+    return videoId
+  }
+
+}
+
 export function copyTranscript(videoId, subtitle) {
   let contentBody = ''
   const url = `https://www.youtube.com/watch?v=${videoId}`
@@ -261,6 +293,37 @@ export function waitForElm(selector) {
     })
   })
 }
+
+// 获取b站分字幕
+export async function getRawTranscriptBilibili(link) {
+  // Get Transcript
+  const transcriptPageResponse = await fetch(link) // default 0
+  const transcriptPageXml = await transcriptPageResponse.text()
+  const transcriptJSON = JSON.parse(transcriptPageXml)
+
+  return transcriptJSON.body.map(({ from, to, content }) => ({
+    start: from,
+    duration: to - from,
+    text: content,
+  }));
+  
+}
+
+// 获取b站字幕
+export async function getBilibiliTranscript({ langOptionsWithLink, videoId, index }){
+    const rawTranscript = !langOptionsWithLink
+    ? []
+    : await getRawTranscriptBilibili(langOptionsWithLink[index ? index : 0].link)
+  console.log('rawTranscript', rawTranscript)
+
+  const transcriptList = !langOptionsWithLink ? [] : await getTranscriptHTML(rawTranscript, videoId)
+  console.log('transcriptList', transcriptList)
+
+  return transcriptList
+
+}
+
+
 
 export async function getConverTranscript({ langOptionsWithLink, videoId, index }) {
   const rawTranscript = !langOptionsWithLink
