@@ -6,6 +6,7 @@ Chrome extension to display ChatGPT summaries alongside Google search results an
 
 Google
 YouTube
+Bilibili
 
 ## Installation
 

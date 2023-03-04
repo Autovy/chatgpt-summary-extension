@@ -41,11 +41,17 @@ export function removeHtmlTags(str: string) {
 
 // 获取BV视频字幕链接
 export async function getLangOptionsWithLinkBilibili(videoId){
-  const videoMessageResponse = await fetch('https://api.bilibili.com/x/web-interface/view?aid=&bvid=' + videoId)
+  const videoMessageResponse = await fetch('https://api.bilibili.com/x/web-interface/view?aid=&bvid=' + videoId, 
+    {
+      credentials: 'include' // 告诉浏览器包括凭证（cookie）在内的请求上下文信息
+    })
   const videoRes = await videoMessageResponse.text()
+  console.log(videoRes)
   const videoJSON = JSON.parse(videoRes)
+  console.log(videoJSON)
   const videoLangLink = videoJSON.data.subtitle.list
-
+  console.log(videoLangLink)
+  
   return videoLangLink.map(item => {
     return {
       language: item.lan,
